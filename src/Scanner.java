@@ -50,7 +50,7 @@ public class Scanner {
         while (!isAtEnd()) {
             // at beginning of next lexeme
             start = current;
-            scanTokens();
+            scanToken();
         }
 
         tokens.add(new Token(TokenType.EOF, "", null, line));
@@ -93,6 +93,9 @@ public class Scanner {
                     while (peek() != '\n' && !isAtEnd()) {
                         advance();
                     }
+                } else if (match('*')) {
+                    // Multiline comment
+                    multilineComment();
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -183,6 +186,60 @@ public class Scanner {
         }
 
         addToken(TokenType.NUMBER, Double.parseDouble(source.substring(start, current)));
+    }
+
+    /**
+     * Scan multiline comments.
+     *
+     * Multiline comments can be nested (unlike Java where /* is ignored if inside comment).
+     */
+    private void multilineComment() {
+        int depth = 1; // Allow nested comments
+
+        while (0 < depth) {
+            // Unterminated multiline comment so error
+            if (isAtEnd()) {
+                Lox.error(line, "Unterminated multiline comment.");
+                return;
+            }
+
+            char c = advance();
+
+            switch (c) {
+                case '*':
+                    if (match('/')) {
+                        depth--;
+                    }
+                    break;
+                case '/':
+                    if (match('*')) {
+                        depth++;
+                    }
+                    break;
+                case '\n':
+                    line++;
+                    break;
+            }
+
+            /*
+            if (peek() == '*' && peekNext() == '/') {
+                // End of current comment nest
+                advance();
+                advance();
+                depth--;
+            } else if (peek() == '/' && peekNext() == '*') {
+                // Begin nested multiline comment
+                advance();
+                advance();
+                depth++;
+            } else if (peek() == '\n') {
+                line++;
+                advance();
+            } else {
+                advance();
+            }
+             */
+        }
     }
 
     /**
