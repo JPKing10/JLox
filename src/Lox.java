@@ -5,7 +5,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Lox is a scripting language described in Crafting Interpreters.
@@ -16,7 +15,7 @@ import java.util.Scanner;
 public class Lox {
     private static boolean hadError = false; // If error occurs carry on scanning to find more errors but don't exec
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (1 < args.length) { // unexpected arg length
             System.out.println("Usage: jlox [script]");
             System.exit(64);

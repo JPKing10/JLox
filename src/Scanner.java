@@ -46,7 +46,7 @@ public class Scanner {
      *
      * Returns a list of scanned tokens.
      */
-    private List<Token> scanTokens() {
+    public List<Token> scanTokens() {
         while (!isAtEnd()) {
             // at beginning of next lexeme
             start = current;
