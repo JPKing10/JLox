@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Scan the lines of source and exec
+ * Scans Lox source to generate tokens which can be fed to the parser.
  */
 
 public class Scanner {
@@ -58,7 +58,7 @@ public class Scanner {
     }
 
     /**
-     * Returns true if all of the source line has been scanned.
+     * Returns true if all of the source has been scanned.
      */
     private boolean isAtEnd() {
         return source.length() <= current;
