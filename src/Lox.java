@@ -63,30 +63,45 @@ public class Lox {
     /**
      * Core interpreter function.
      *
+     * Scan source, parse tokens, print AST.
+     *
      * @param source source string to be executed by the interpreter
      */
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.parse();
 
-        // Print scanned tokens
-        if (!hadError) {
-            for (Token token : tokens) {
-                System.out.print(token + " ");
-            }
-        }
-        System.out.println();
+        // Stop on error
+        if (hadError) return;
+
+        System.out.println(new AstPrinter().print(expression));
     }
 
 
     /**
-     * Present error if incorrect code provided.
+     * Error during source code scan.
      *
      * @param line Line of being interpreted when error occurred
      * @param message Description of the type of error
      */
     static void error(int line, String message) {
         report(line, "", message);
+    }
+
+    /**
+     * Error during parsing tokens.
+     *
+     * @param token Current token when error raised
+     * @param errorMessage Error message
+     */
+    static void error(Token token, String errorMessage) {
+        if (token.type == TokenType.EOF) {
+            report(token.line, " at end", errorMessage);
+        } else {
+            report(token.line, " at '" + token.lexeme + "'", errorMessage);
+        }
     }
 
     /**
