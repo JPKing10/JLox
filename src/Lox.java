@@ -13,7 +13,12 @@ import java.util.List;
  */
 
 public class Lox {
+    /* Interpreter used in REPL session */
+    private static final Interpreter interpreter = new Interpreter();
+
+    /* Error flags */
     private static boolean hadError = false; // If error occurs carry on scanning to find more errors but don't exec
+    private static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         if (1 < args.length) { // unexpected arg length
@@ -38,7 +43,11 @@ public class Lox {
 
         // Error in source
         if (hadError) {
+            // Scan/parsing
             System.exit(65);
+        } else if (hadRuntimeError) {
+            // Interpretation
+            System.exit(70);
         }
     }
 
@@ -76,7 +85,7 @@ public class Lox {
         // Stop on error
         if (hadError) return;
 
-        System.out.println(new AstPrinter().print(expression));
+        interpreter.interpret(expression);
     }
 
 
@@ -105,16 +114,17 @@ public class Lox {
     }
 
     /**
-     * @param line
-     * @param where
-     * @param message
+     * Error during interpretation (like type error).
+     *
+     * @param error RuntimeError error object with token and message
      */
+    static void runtimeError(RuntimeError error) {
+        report(error.token.line, "", error.getMessage());
+        hadRuntimeError = true;
+    }
+
     private static void report(int line, String where, String message) {
         System.err.println( "[line " + line + "] Error" + where + ": " + message);
         hadError = true;
     }
-
-
-
-
 }
