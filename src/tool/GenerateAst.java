@@ -23,11 +23,18 @@ public class GenerateAst {
 
         // define our syntax
         // name of class : comma separated fields
+        // Expression syntax: evaluate to value
         defineAst(outputDir, "Expr", Arrays.asList(
                 "Binary : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal : Object value",
                 "Unary : Token operator, Expr right"
+        ));
+
+        // Statement syntax: Cause side effect
+        defineAst(outputDir, "Stmt", Arrays.asList(
+                "Expression: Expr expression",
+                "Print : Expr expression"
         ));
     }
 

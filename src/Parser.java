@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,16 +18,44 @@ public class Parser {
     }
 
     /**
-     * Drives the parser.
-     * <p>
-     * Currently parses a single expression.
+     * Parse statements until end of input.
      */
-    public Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    public List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(statement());
         }
+
+        return statements;
+    }
+
+    /**
+     * Parse statement.
+     */
+    private Stmt statement() {
+        if (match(TokenType.PRINT)) {
+            return printStatement();
+        }
+
+        return expressionStatement();
+    }
+
+    /**
+     * Evaluate print statements.
+     */
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expected ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    /**
+     * Evaluate expression statements.
+     */
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expected ';' after value.");
+        return new Stmt.Expression(expr);
     }
 
     /**

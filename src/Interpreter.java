@@ -2,7 +2,7 @@
  * Visitor that can compute values for different expressions in the AST.
  */
 
-public class Interpreter implements Expr.Visitor<Object> {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     /**
      * Interprets the provided expression.
      *
@@ -15,6 +15,25 @@ public class Interpreter implements Expr.Visitor<Object> {
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
+    }
+
+    /**
+     * Visit expression statements by evaluating statement expression.
+     */
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    /**
+     * Evaluates expression and prints value.
+     */
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
     }
 
     @Override
@@ -150,4 +169,5 @@ public class Interpreter implements Expr.Visitor<Object> {
             return object.toString();
         }
     }
+
 }
