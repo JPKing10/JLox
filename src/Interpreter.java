@@ -1,20 +1,32 @@
+import java.util.List;
+
 /**
  * Visitor that can compute values for different expressions in the AST.
  */
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     /**
-     * Interprets the provided expression.
+     * Interprets the program.
      *
-     * @param expression The expression to interpret.
+     * @param statements The list of statements to interpret.
      */
-    public void interpret(Expr expression) {
+    public void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expression);
-            System.out.println(stringify(value));
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError error) {
             Lox.runtimeError(error);
         }
+    }
+
+    /**
+     * Helper method to intrepret statement.
+     *
+     * @param statement The statement to interpret.
+     */
+    private void execute(Stmt statement) {
+        statement.accept(this);
     }
 
     /**

@@ -72,7 +72,7 @@ public class Lox {
     /**
      * Core interpreter function.
      *
-     * Scan source, parse tokens, print AST.
+     * Scan source, parse tokens to statements, interpret statements.
      *
      * @param source source string to be executed by the interpreter
      */
@@ -80,12 +80,12 @@ public class Lox {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        List<Stmt> statements = parser.parse();
 
         // Stop on error
         if (hadError) return;
 
-        interpreter.interpret(expression);
+        interpreter.interpret(statements);
     }
 
 
