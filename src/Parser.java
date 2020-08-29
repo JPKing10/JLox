@@ -23,7 +23,7 @@ public class Parser {
     public List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(statement());
+            statements.add(declaration());
         }
 
         return statements;
@@ -50,6 +50,21 @@ public class Parser {
     }
 
     /**
+     * Evaluate variable declaration.
+     */
+    private Stmt varDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expected variable name.");
+
+        Expr initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
+        return new Stmt.Var(name, initializer);
+    }
+
+    /**
      * Evaluate expression statements.
      */
     private Stmt expressionStatement() {
@@ -66,6 +81,20 @@ public class Parser {
      */
     private Expr expression() {
         return equality();
+    }
+
+    /**
+     * Parse variable declaration.
+     */
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
     }
 
     /**
@@ -166,6 +195,8 @@ public class Parser {
             return new Expr.Literal(true);
         } else if (match(TokenType.NIL)) {
             return new Expr.Literal(null);
+        } else if (match(TokenType.IDENTIFIER)) {
+            return new Expr.Variable(previous());
         } else if (match(TokenType.LEFT_PAREN)) {
             Expr expr = expression();
             consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.");
@@ -175,6 +206,7 @@ public class Parser {
             throw error(peek(), "Expected expression.");
         }
     }
+
 
     /**
      * Returns true if current token matches supplied token.
