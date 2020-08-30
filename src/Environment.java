@@ -4,11 +4,28 @@ import java.util.Map;
 /**
  * Where Lox variables are stored.
  *
+ * Supports scoping: environments chain together.
+ *
  * Map the string variable name to the object it refers to.
  */
 
 public class Environment {
+    final Environment enclosing;
     private final Map<String, Object> values = new HashMap<>();
+
+    /**
+     * Create an environment without an enclosing parent environment.
+     */
+    public Environment() {
+        enclosing = null;
+    }
+
+    /**
+     * Create an environment with an enclosing parent environment.
+     */
+    public Environment(Environment enclosing) {
+        this.enclosing = enclosing;
+    }
 
     /**
      * Define a variable.
@@ -27,6 +44,8 @@ public class Environment {
     public Object get(Token name) {
         if (values.containsKey(name.lexeme)) {
             return values.get(name.lexeme);
+        } else if (enclosing != null) {
+            return enclosing.get(name);
         }
 
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme +"' on line " + name.line + ".");
@@ -40,6 +59,9 @@ public class Environment {
     public void assign(Token name, Object value) {
         if (values.containsKey(name.lexeme)) {
             values.put(name.lexeme, value);
+            return;
+        } else if (enclosing != null) {
+            enclosing.assign(name, value);
             return;
         }
 

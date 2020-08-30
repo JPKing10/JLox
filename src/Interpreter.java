@@ -23,12 +23,43 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     /**
-     * Helper method to intrepret statement.
+     * Helper method to interpret statement.
      *
      * @param statement The statement to interpret.
      */
     private void execute(Stmt statement) {
         statement.accept(this);
+    }
+
+    /**
+     * Execute a block of statements.
+     *
+     * Update the current environment to the one specified, execute the list of statements, then reinstate the previous
+     * environment once block is finished executing.
+     */
+    private void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
+
+        try {
+            this.environment = environment;
+
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    /**
+     * Visit a block.
+     *
+     * Creates a new environment for the block and executes.
+     */
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
     }
 
     /**
