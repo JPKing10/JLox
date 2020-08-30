@@ -32,4 +32,19 @@ public class Environment {
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme +"' on line " + name.line + ".");
     }
 
+    /**
+     * Assigns a new value to an existing variable.
+     *
+     * @throws RuntimeError if unknown variable
+     */
+    public void assign(Token name, Object value) {
+        if (values.containsKey(name.lexeme)) {
+            values.put(name.lexeme, value);
+            return;
+        }
+
+        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "' on line " + name.line + ".");
+
+    }
+
 }

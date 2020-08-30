@@ -74,13 +74,34 @@ public class Parser {
     }
 
     /**
-     * When we have expression first thing to check for is equality.
+     * Evaluate assignments. Parse lhs, if '=' found parse rhs and wrap in assignment expression tree node.
+     */
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(TokenType.EQUAL)) {
+            Token lhs = previous();
+            Expr rhs = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, rhs);
+            }
+
+            error(lhs, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    /**
+     * When we have expression first thing to check for is assignment.
      * <p>
      * We work down the operator rules for our parser in a systematic way to ensure proper order of operations, avoiding
      * ambiguity.
      */
     private Expr expression() {
-        return equality();
+        return assignment();
     }
 
     /**
