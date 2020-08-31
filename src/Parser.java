@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,11 +36,92 @@ public class Parser {
     private Stmt statement() {
         if (match(TokenType.PRINT)) {
             return printStatement();
+        } else if (match(TokenType.IF)) {
+            return ifStatement();
+        } else if (match(TokenType.WHILE)) {
+            return whileStatement();
+        } else if (match(TokenType.FOR)) {
+            return forStatement();
         } else if (match(TokenType.LEFT_BRACE)) {
             return new Stmt.Block(block());
         }
 
         return expressionStatement();
+    }
+
+    /**
+     * Parse an if conditional statement.
+     */
+    private Stmt ifStatement() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if (match(TokenType.ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * Parse a while loop statement.
+     */
+    private Stmt whileStatement() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after while loop condition.");
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
+
+    }
+
+    /**
+     * Parse a for statement by desugaring to while.
+     *
+     * Extract initializer, condition, increment and body from for. Build new while node to express same semantics:
+     * attach increment to end of body, wrap in while loop with condition, attach initializer before.
+     */
+    private Stmt forStatement() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.");
+
+        Stmt initializer;
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (match(TokenType.VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expected ';' after for loop condition.");
+
+        Expr increment = null;
+        if (!check(TokenType.SEMICOLON)) {
+            increment = expression();
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after for loop clause.");
+
+        Stmt body = statement();
+
+        if (increment != null) {
+            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+        }
+
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     /**
@@ -90,10 +172,10 @@ public class Parser {
     }
 
     /**
-     * Evaluate assignments. Parse lhs, if '=' found parse rhs and wrap in assignment expression tree node.
+     * Parse assignments. Parse lhs, if '=' found parse rhs and wrap in assignment expression tree node.
      */
     private Expr assignment() {
-        Expr expr = equality();
+        Expr expr = or();
 
         if (match(TokenType.EQUAL)) {
             Token lhs = previous();
@@ -105,6 +187,36 @@ public class Parser {
             }
 
             error(lhs, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parse series of or expressions.
+     */
+    private Expr or() {
+        Expr expr = and();
+
+        while (match(TokenType.OR)) {
+            Token operator = previous();
+            Expr right = and();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parse and.
+     */
+    private Expr and() {
+        Expr expr = equality();
+
+        while (match(TokenType.AND)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Logical(expr, operator, right);
         }
 
         return expr;
